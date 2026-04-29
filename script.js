@@ -25,19 +25,21 @@ const manager = new THREE.LoadingManager();
 
 manager.onProgress = function (url, itemsLoaded, itemsTotal) {
     const progress = (itemsLoaded / itemsTotal) * 100;
-    loadingBar.style.width = progress + '%';
-    loadingPercent.innerText = Math.round(progress);
+    if (loadingBar) loadingBar.style.width = progress + '%';
+    if (loadingPercent) loadingPercent.innerText = Math.round(progress);
 };
 
 manager.onLoad = function () {
-    gsap.to(loadingScreen, {
-        opacity: 0,
-        duration: 1,
-        ease: "power2.inOut",
-        onComplete: () => {
-            loadingScreen.style.display = 'none';
-        }
-    });
+    if (loadingScreen) {
+        gsap.to(loadingScreen, {
+            opacity: 0,
+            duration: 1,
+            ease: "power2.inOut",
+            onComplete: () => {
+                loadingScreen.style.display = 'none';
+            }
+        });
+    }
 };
 
 const loader = new THREE.GLTFLoader(manager);
@@ -63,13 +65,11 @@ controls1.enableZoom = false;
 controls1.autoRotate = true;    
 controls1.autoRotateSpeed = 1.5; 
 
-// Lighting
 scene1.add(new THREE.AmbientLight(0xffffff, 1.2)); 
 const dirLight1 = new THREE.DirectionalLight(0xffffff, 1.0); 
 dirLight1.position.set(5, 5, 3);
 scene1.add(dirLight1);
 
-// Golden Dust
 let particlesMesh1;
 const particlesGeo1 = new THREE.BufferGeometry();
 const particlesArray1 = new Float32Array(150 * 3);
@@ -83,9 +83,8 @@ const particlesMat1 = new THREE.PointsMaterial({
 particlesMesh1 = new THREE.Points(particlesGeo1, particlesMat1);
 scene1.add(particlesMesh1);
 
-// Load Radio 1
 let radio1Wrapper;
-loader.load('./radio1.glb', function(gltf) {
+loader.load('radio1.glb', function(gltf) { // Removed ./ for GitHub compatibility
     let radio1 = gltf.scene;
     const box = new THREE.Box3().setFromObject(radio1);
     const center = box.getCenter(new THREE.Vector3());
@@ -123,15 +122,13 @@ controls2.enableZoom = false;
 controls2.autoRotate = true;
 controls2.autoRotateSpeed = 1.5;
 
-// Lighting
 scene2.add(new THREE.AmbientLight(0xffffff, 1.2)); 
 const dirLight2 = new THREE.DirectionalLight(0xffffff, 1.2); 
 dirLight2.position.set(5, 5, 3);
 scene2.add(dirLight2);
 
-// Load Radio 2
 let radio2Wrapper;
-loader.load('./radio2.glb', function(gltf) {
+loader.load('radio2.glb', function(gltf) { // Removed ./ for GitHub compatibility
     let radio2 = gltf.scene;
     const box = new THREE.Box3().setFromObject(radio2);
     const center = box.getCenter(new THREE.Vector3());
@@ -206,9 +203,12 @@ navLinks.forEach(link => {
     });
 });
 
-document.querySelector('.enter-btn').addEventListener('click', () => {
-    scrollToSection('exhibit-1');
-});
+const enterBtn = document.querySelector('.enter-btn');
+if (enterBtn) {
+    enterBtn.addEventListener('click', () => {
+        scrollToSection('exhibit-1');
+    });
+}
 
 const allSections = document.querySelectorAll('.museum-section');
 allSections.forEach(section => {
