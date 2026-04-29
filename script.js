@@ -14,7 +14,33 @@ function scrollToSection(sectionId) {
     lenis.scrollTo('#' + sectionId);
 }
 
-const loader = new THREE.GLTFLoader();
+// ==========================================
+// LOADING MANAGER
+// ==========================================
+const loadingScreen = document.getElementById('loading-screen');
+const loadingBar = document.getElementById('loading-bar');
+const loadingPercent = document.getElementById('loading-percent');
+
+const manager = new THREE.LoadingManager();
+
+manager.onProgress = function (url, itemsLoaded, itemsTotal) {
+    const progress = (itemsLoaded / itemsTotal) * 100;
+    loadingBar.style.width = progress + '%';
+    loadingPercent.innerText = Math.round(progress);
+};
+
+manager.onLoad = function () {
+    gsap.to(loadingScreen, {
+        opacity: 0,
+        duration: 1,
+        ease: "power2.inOut",
+        onComplete: () => {
+            loadingScreen.style.display = 'none';
+        }
+    });
+};
+
+const loader = new THREE.GLTFLoader(manager);
 
 // ==========================================
 // 2. SCENE 1: GRAMOPHONE
@@ -30,10 +56,13 @@ const renderer1 = new THREE.WebGLRenderer({ canvas: canvas1, antialias: true, al
 renderer1.setSize(container1.clientWidth, container1.clientHeight);
 renderer1.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
-// --- ADDED: This enables mouse rotation for Scene 1 ---
+// PROPER ORBIT CONTROLS FOR SCENE 1
 const controls1 = new THREE.OrbitControls(camera1, renderer1.domElement);
-controls1.enableDamping = true;
+controls1.enableDamping = true; // Smooth drifting effect
+controls1.dampingFactor = 0.05;
 controls1.enableZoom = false;
+controls1.autoRotate = true;    // Makes it spin automatically
+controls1.autoRotateSpeed = 1.5; // Speed of auto-spin
 
 // Lighting
 scene1.add(new THREE.AmbientLight(0xffffff, 1.2)); 
@@ -41,7 +70,8 @@ const dirLight1 = new THREE.DirectionalLight(0xffffff, 1.0);
 dirLight1.position.set(5, 5, 3);
 scene1.add(dirLight1);
 
-// Golden Dust for the antique Gramophone
+// Golden Dust
+let particlesMesh1;
 const particlesGeo1 = new THREE.BufferGeometry();
 const particlesArray1 = new Float32Array(150 * 3);
 for(let i = 0; i < 150 * 3; i++) {
@@ -51,24 +81,20 @@ particlesGeo1.setAttribute('position', new THREE.BufferAttribute(particlesArray1
 const particlesMat1 = new THREE.PointsMaterial({
     size: 0.03, color: 0xc5a059, transparent: true, opacity: 0.5, blending: THREE.AdditiveBlending
 });
-const particlesMesh1 = new THREE.Points(particlesGeo1, particlesMat1);
+particlesMesh1 = new THREE.Points(particlesGeo1, particlesMat1);
 scene1.add(particlesMesh1);
 
 // Load Radio 1
 let radio1Wrapper;
 loader.load('./radio1.glb', function(gltf) {
     let radio1 = gltf.scene;
-    
-    // Center it perfectly
     const box = new THREE.Box3().setFromObject(radio1);
     const center = box.getCenter(new THREE.Vector3());
     radio1.position.sub(center);
 
-    // Wrap it so it spins cleanly
     radio1Wrapper = new THREE.Group();
     radio1Wrapper.add(radio1);
 
-    // Scale it to fit the box
     const size = box.getSize(new THREE.Vector3());
     const scale = 3.2 / Math.max(size.x, size.y, size.z);
     radio1Wrapper.scale.set(scale, scale, scale);
@@ -91,10 +117,13 @@ const renderer2 = new THREE.WebGLRenderer({ canvas: canvas2, antialias: true, al
 renderer2.setSize(container2.clientWidth, container2.clientHeight);
 renderer2.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
-// --- ADDED: This enables mouse rotation for Scene 2 ---
+// PROPER ORBIT CONTROLS FOR SCENE 2
 const controls2 = new THREE.OrbitControls(camera2, renderer2.domElement);
 controls2.enableDamping = true;
+controls2.dampingFactor = 0.05;
 controls2.enableZoom = false;
+controls2.autoRotate = true;
+controls2.autoRotateSpeed = 1.5;
 
 // Lighting
 scene2.add(new THREE.AmbientLight(0xffffff, 1.2)); 
@@ -106,17 +135,13 @@ scene2.add(dirLight2);
 let radio2Wrapper;
 loader.load('./radio2.glb', function(gltf) {
     let radio2 = gltf.scene;
-    
-    // Center it perfectly
     const box = new THREE.Box3().setFromObject(radio2);
     const center = box.getCenter(new THREE.Vector3());
     radio2.position.sub(center);
 
-    // Wrap it so it spins cleanly
     radio2Wrapper = new THREE.Group();
     radio2Wrapper.add(radio2);
 
-    // Scale it to fit the box
     const size = box.getSize(new THREE.Vector3());
     const scale = 3.2 / Math.max(size.x, size.y, size.z);
     radio2Wrapper.scale.set(scale, scale, scale);
@@ -131,42 +156,37 @@ loader.load('./radio2.glb', function(gltf) {
 function animate() {
     requestAnimationFrame(animate);
 
-    // --- ADDED: Update the rotation controls every frame ---
-    if (typeof controls1 !== 'undefined') controls1.update();
-    if (typeof controls2 !== 'undefined') controls2.update();
+    // THIS IS THE FIX: Only OrbitControls handles rotation now. 
+    // It spins automatically, and stops to let you drag when you click.
+    controls1.update();
+    controls2.update();
     
-    // Spin Scene 1
-    if (radio1Wrapper) radio1Wrapper.rotation.y += 0.003;
+    // Background dust animation
     if (particlesMesh1) {
         particlesMesh1.rotation.y -= 0.001;
         particlesMesh1.rotation.x += 0.0005;
     }
-    renderer1.render(scene1, camera1);
     
-    // Spin Scene 2
-    if (radio2Wrapper) radio2Wrapper.rotation.y += 0.003;
+    renderer1.render(scene1, camera1);
     renderer2.render(scene2, camera2);
 }
 animate();
 
 
 // ==========================================
-// 5. SCROLL TRIGGER FADES & RESIZE
+// 5. SCROLL TRIGGER & RESIZE
 // ==========================================
-// Fade waves out on scroll
 gsap.to(".waves-wrapper", {
     scrollTrigger: { trigger: ".exhibit-grid", start: "top bottom", end: "bottom top", scrub: true },
     opacity: 0.05
 });
 
-// Fade transition between Exhibit 1 and Exhibit 2
 gsap.timeline({
     scrollTrigger: { trigger: "#exhibit-2", start: "top bottom", end: "top center", scrub: true }
 })
 .to('#exhibit-1', { opacity: 0.1, duration: 1 })
 .from('#exhibit-2', { opacity: 0, duration: 1 }, 0);
 
-// Keep canvases sized correctly if window is resized
 window.addEventListener('resize', () => {
     if (container1.clientWidth > 0) {
         camera1.aspect = container1.clientWidth / container1.clientHeight;
