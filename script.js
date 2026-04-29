@@ -1,5 +1,5 @@
 // ==========================================
-// 1. CORE UTILITIES
+// 1. CORE UTILITIES & SCROLLING
 // ==========================================
 const lenis = new Lenis();
 function raf(time) { 
@@ -15,7 +15,7 @@ function scrollToSection(sectionId) {
 }
 
 // ==========================================
-// LOADING MANAGER
+// 2. LOADING MANAGER
 // ==========================================
 const loadingScreen = document.getElementById('loading-screen');
 const loadingBar = document.getElementById('loading-bar');
@@ -43,7 +43,7 @@ manager.onLoad = function () {
 const loader = new THREE.GLTFLoader(manager);
 
 // ==========================================
-// 2. SCENE 1: GRAMOPHONE
+// 3. SCENE 1: GRAMOPHONE
 // ==========================================
 const container1 = document.querySelector('.hover-box-1');
 const canvas1 = document.querySelector('#webgl-1');
@@ -56,13 +56,12 @@ const renderer1 = new THREE.WebGLRenderer({ canvas: canvas1, antialias: true, al
 renderer1.setSize(container1.clientWidth, container1.clientHeight);
 renderer1.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
-// PROPER ORBIT CONTROLS FOR SCENE 1
 const controls1 = new THREE.OrbitControls(camera1, renderer1.domElement);
-controls1.enableDamping = true; // Smooth drifting effect
+controls1.enableDamping = true;
 controls1.dampingFactor = 0.05;
 controls1.enableZoom = false;
-controls1.autoRotate = true;    // Makes it spin automatically
-controls1.autoRotateSpeed = 1.5; // Speed of auto-spin
+controls1.autoRotate = true;    
+controls1.autoRotateSpeed = 1.5; 
 
 // Lighting
 scene1.add(new THREE.AmbientLight(0xffffff, 1.2)); 
@@ -104,7 +103,7 @@ loader.load('./radio1.glb', function(gltf) {
 
 
 // ==========================================
-// 3. SCENE 2: BPL CD RADIO
+// 4. SCENE 2: BPL CD RADIO
 // ==========================================
 const container2 = document.querySelector('.hover-box-2');
 const canvas2 = document.querySelector('#webgl-2');
@@ -117,7 +116,6 @@ const renderer2 = new THREE.WebGLRenderer({ canvas: canvas2, antialias: true, al
 renderer2.setSize(container2.clientWidth, container2.clientHeight);
 renderer2.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
-// PROPER ORBIT CONTROLS FOR SCENE 2
 const controls2 = new THREE.OrbitControls(camera2, renderer2.domElement);
 controls2.enableDamping = true;
 controls2.dampingFactor = 0.05;
@@ -151,17 +149,14 @@ loader.load('./radio2.glb', function(gltf) {
 
 
 // ==========================================
-// 4. ANIMATION & RENDER LOOP
+// 5. ANIMATION LOOP
 // ==========================================
 function animate() {
     requestAnimationFrame(animate);
 
-    // THIS IS THE FIX: Only OrbitControls handles rotation now. 
-    // It spins automatically, and stops to let you drag when you click.
     controls1.update();
     controls2.update();
     
-    // Background dust animation
     if (particlesMesh1) {
         particlesMesh1.rotation.y -= 0.001;
         particlesMesh1.rotation.x += 0.0005;
@@ -174,7 +169,7 @@ animate();
 
 
 // ==========================================
-// 5. SCROLL TRIGGER & RESIZE
+// 6. SCROLL TRIGGERS & RESIZE
 // ==========================================
 gsap.to(".waves-wrapper", {
     scrollTrigger: { trigger: ".exhibit-grid", start: "top bottom", end: "bottom top", scrub: true },
@@ -202,7 +197,7 @@ window.addEventListener('resize', () => {
 
 
 // ==========================================
-// 6. NAVIGATION LOGIC
+// 7. NAVIGATION LOGIC
 // ==========================================
 const navLinks = document.querySelectorAll('.nav-links span');
 navLinks.forEach(link => {
@@ -211,19 +206,23 @@ navLinks.forEach(link => {
     });
 });
 
+document.querySelector('.enter-btn').addEventListener('click', () => {
+    scrollToSection('exhibit-1');
+});
+
 const allSections = document.querySelectorAll('.museum-section');
 allSections.forEach(section => {
     ScrollTrigger.create({
         trigger: section,
         start: "top 30%", 
         end: "bottom 30%",
-        onEnter: () => updateNavActive(section.id || section.classList[1]),
-        onEnterBack: () => updateNavActive(section.id || section.classList[1])
+        onEnter: () => updateNavActive(section.id),
+        onEnterBack: () => updateNavActive(section.id)
     });
 });
 
-function updateNavActive(sectionDataValue) {
+function updateNavActive(sectionId) {
     navLinks.forEach(link => link.classList.remove('active'));
-    const targetLink = document.querySelector(`.nav-links span[data-section="${sectionDataValue}"]`);
+    const targetLink = document.querySelector(`.nav-links span[data-section="${sectionId}"]`);
     if (targetLink) targetLink.classList.add('active');
 }
