@@ -5,12 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Memorial of the World Around</title>
     
+    <!-- Libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/gh/mrdoob/three.js@r128/examples/js/loaders/GLTFLoader.js"></script>
-    
-    <!-- THIS IS THE ONLY LINE ADDED: It allows the mouse to rotate the 3D models -->
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
-
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
     <script src="https://unpkg.com/lenis@1.0.45/dist/lenis.min.js"></script>
@@ -20,6 +18,15 @@
 </head>
 <body>
     
+    <!-- LOADING SCREEN -->
+    <div id="loading-screen">
+        <div class="loading-text">INITIALIZING EXHIBIT... <span id="loading-percent">0</span>%</div>
+        <div class="loading-bar-bg">
+            <div class="loading-bar-fill" id="loading-bar"></div>
+        </div>
+    </div>
+
+    <!-- BACKGROUND WAVES -->
     <div class="waves-wrapper">
         <svg class="waves-svg" viewBox="0 0 1440 800" preserveAspectRatio="none">
             <path class="wave-path" d="M0,200 C360,150 720,250 1080,200 C1440,150 1800,250 2160,200" />
@@ -28,16 +35,21 @@
         </svg>
     </div>
 
+    <!-- NAVIGATION -->
     <header class="museum-nav">
         <div class="logo"><span>•</span> MEMORIAL <i>OF THE WORLD AROUND</i></div>
         <nav class="nav-links">
             <span class="active" data-section="center-view">ENTRANCE</span>
             <span data-section="exhibit-1">TUBE RADIO</span>
             <span data-section="exhibit-2">BPL RADIO</span>
+            <span data-section="final-silence">SILENCE</span>
         </nav>
     </header>
 
+    <!-- MAIN CONTENT -->
     <div class="sections-wrapper">
+        
+        <!-- ENTRANCE -->
         <section class="museum-section center-view" id="center-view">
             <div class="content">
                 <div class="metadata-top">A DIGITAL MUSEUM EXPERIENCE</div>
@@ -48,6 +60,7 @@
             <div class="scroll-footer">SCROLL ↓</div>
         </section>
 
+        <!-- EXHIBIT 1: TUBE RADIO -->
         <section class="museum-section exhibit-view" id="exhibit-1">
             <div class="exhibit-grid">
                 <div class="artifact-space">
@@ -71,6 +84,7 @@
             </div>
         </section>
 
+        <!-- EXHIBIT 2: BPL RADIO -->
         <section class="museum-section exhibit-view" id="exhibit-2">
             <div class="exhibit-grid">
                 <div class="narrative-container">
@@ -97,6 +111,28 @@
                 </div>
             </div>
         </section>
+
+        <!-- FINAL SILENCE -->
+        <section class="museum-section final-silence" id="final-silence">
+            <div class="silence-content">
+                <h2 class="silence-text">Between every era, there is silence.</h2>
+                
+                <div class="timeline-container">
+                    <div class="timeline-line"></div>
+                    
+                    <div class="timeline-point point-analog">
+                        <div class="glow-circle"></div>
+                        <span class="point-label">ANALOG</span>
+                    </div>
+                    
+                    <div class="timeline-point point-digital">
+                        <div class="glow-circle"></div>
+                        <span class="point-label">DIGITAL</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
     </div>
 
     <script src="script.js"></script>
