@@ -1,0 +1,195 @@
+// ==========================================
+// 1. CORE UTILITIES
+// ==========================================
+const lenis = new Lenis();
+function raf(time) { 
+    lenis.raf(time); 
+    requestAnimationFrame(raf); 
+}
+requestAnimationFrame(raf);
+
+gsap.registerPlugin(ScrollTrigger);
+
+function scrollToSection(sectionId) {
+    lenis.scrollTo('#' + sectionId);
+}
+
+const loader = new THREE.GLTFLoader();
+
+// ==========================================
+// 2. SCENE 1: GRAMOPHONE
+// ==========================================
+const container1 = document.querySelector('.hover-box-1');
+const canvas1 = document.querySelector('#webgl-1');
+const scene1 = new THREE.Scene();
+
+const camera1 = new THREE.PerspectiveCamera(45, container1.clientWidth / container1.clientHeight, 0.1, 1000);
+camera1.position.z = 6; 
+
+const renderer1 = new THREE.WebGLRenderer({ canvas: canvas1, antialias: true, alpha: true });
+renderer1.setSize(container1.clientWidth, container1.clientHeight);
+renderer1.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+// Lighting
+scene1.add(new THREE.AmbientLight(0xffffff, 1.2)); 
+const dirLight1 = new THREE.DirectionalLight(0xffffff, 1.0); 
+dirLight1.position.set(5, 5, 3);
+scene1.add(dirLight1);
+
+// Golden Dust for the antique Gramophone
+const particlesGeo1 = new THREE.BufferGeometry();
+const particlesArray1 = new Float32Array(150 * 3);
+for(let i = 0; i < 150 * 3; i++) {
+    particlesArray1[i] = (Math.random() - 0.5) * 10; 
+}
+particlesGeo1.setAttribute('position', new THREE.BufferAttribute(particlesArray1, 3));
+const particlesMat1 = new THREE.PointsMaterial({
+    size: 0.03, color: 0xc5a059, transparent: true, opacity: 0.5, blending: THREE.AdditiveBlending
+});
+const particlesMesh1 = new THREE.Points(particlesGeo1, particlesMat1);
+scene1.add(particlesMesh1);
+
+// Load Radio 1
+let radio1Wrapper;
+loader.load('./radio1.glb', function(gltf) {
+    let radio1 = gltf.scene;
+    
+    // Center it perfectly
+    const box = new THREE.Box3().setFromObject(radio1);
+    const center = box.getCenter(new THREE.Vector3());
+    radio1.position.sub(center);
+
+    // Wrap it so it spins cleanly
+    radio1Wrapper = new THREE.Group();
+    radio1Wrapper.add(radio1);
+
+    // Scale it to fit the box
+    const size = box.getSize(new THREE.Vector3());
+    const scale = 3.2 / Math.max(size.x, size.y, size.z);
+    radio1Wrapper.scale.set(scale, scale, scale);
+
+    scene1.add(radio1Wrapper);
+});
+
+
+// ==========================================
+// 3. SCENE 2: BPL CD RADIO
+// ==========================================
+const container2 = document.querySelector('.hover-box-2');
+const canvas2 = document.querySelector('#webgl-2');
+const scene2 = new THREE.Scene();
+
+const camera2 = new THREE.PerspectiveCamera(45, container2.clientWidth / container2.clientHeight, 0.1, 1000);
+camera2.position.z = 6; 
+
+const renderer2 = new THREE.WebGLRenderer({ canvas: canvas2, antialias: true, alpha: true });
+renderer2.setSize(container2.clientWidth, container2.clientHeight);
+renderer2.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+// Lighting
+scene2.add(new THREE.AmbientLight(0xffffff, 1.2)); 
+const dirLight2 = new THREE.DirectionalLight(0xffffff, 1.2); 
+dirLight2.position.set(5, 5, 3);
+scene2.add(dirLight2);
+
+// Load Radio 2
+let radio2Wrapper;
+loader.load('./radio2.glb', function(gltf) {
+    let radio2 = gltf.scene;
+    
+    // Center it perfectly
+    const box = new THREE.Box3().setFromObject(radio2);
+    const center = box.getCenter(new THREE.Vector3());
+    radio2.position.sub(center);
+
+    // Wrap it so it spins cleanly
+    radio2Wrapper = new THREE.Group();
+    radio2Wrapper.add(radio2);
+
+    // Scale it to fit the box
+    const size = box.getSize(new THREE.Vector3());
+    const scale = 3.2 / Math.max(size.x, size.y, size.z);
+    radio2Wrapper.scale.set(scale, scale, scale);
+
+    scene2.add(radio2Wrapper);
+});
+
+
+// ==========================================
+// 4. ANIMATION & RENDER LOOP
+// ==========================================
+function animate() {
+    requestAnimationFrame(animate);
+    
+    // Spin Scene 1
+    if (radio1Wrapper) radio1Wrapper.rotation.y += 0.003;
+    if (particlesMesh1) {
+        particlesMesh1.rotation.y -= 0.001;
+        particlesMesh1.rotation.x += 0.0005;
+    }
+    renderer1.render(scene1, camera1);
+    
+    // Spin Scene 2
+    if (radio2Wrapper) radio2Wrapper.rotation.y += 0.003;
+    renderer2.render(scene2, camera2);
+}
+animate();
+
+
+// ==========================================
+// 5. SCROLL TRIGGER FADES & RESIZE
+// ==========================================
+// Fade waves out on scroll
+gsap.to(".waves-wrapper", {
+    scrollTrigger: { trigger: ".exhibit-grid", start: "top bottom", end: "bottom top", scrub: true },
+    opacity: 0.05
+});
+
+// Fade transition between Exhibit 1 and Exhibit 2
+gsap.timeline({
+    scrollTrigger: { trigger: "#exhibit-2", start: "top bottom", end: "top center", scrub: true }
+})
+.to('#exhibit-1', { opacity: 0.1, duration: 1 })
+.from('#exhibit-2', { opacity: 0, duration: 1 }, 0);
+
+// Keep canvases sized correctly if window is resized
+window.addEventListener('resize', () => {
+    if (container1.clientWidth > 0) {
+        camera1.aspect = container1.clientWidth / container1.clientHeight;
+        camera1.updateProjectionMatrix();
+        renderer1.setSize(container1.clientWidth, container1.clientHeight);
+    }
+    if (container2.clientWidth > 0) {
+        camera2.aspect = container2.clientWidth / container2.clientHeight;
+        camera2.updateProjectionMatrix();
+        renderer2.setSize(container2.clientWidth, container2.clientHeight);
+    }
+});
+
+
+// ==========================================
+// 6. NAVIGATION LOGIC
+// ==========================================
+const navLinks = document.querySelectorAll('.nav-links span');
+navLinks.forEach(link => {
+    link.addEventListener('click', () => {
+        scrollToSection(link.getAttribute('data-section'));
+    });
+});
+
+const allSections = document.querySelectorAll('.museum-section');
+allSections.forEach(section => {
+    ScrollTrigger.create({
+        trigger: section,
+        start: "top 30%", 
+        end: "bottom 30%",
+        onEnter: () => updateNavActive(section.id || section.classList[1]),
+        onEnterBack: () => updateNavActive(section.id || section.classList[1])
+    });
+});
+
+function updateNavActive(sectionDataValue) {
+    navLinks.forEach(link => link.classList.remove('active'));
+    const targetLink = document.querySelector(`.nav-links span[data-section="${sectionDataValue}"]`);
+    if (targetLink) targetLink.classList.add('active');
+}
