@@ -30,6 +30,11 @@ const renderer1 = new THREE.WebGLRenderer({ canvas: canvas1, antialias: true, al
 renderer1.setSize(container1.clientWidth, container1.clientHeight);
 renderer1.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
+// --- ADDED: This enables mouse rotation for Scene 1 ---
+const controls1 = new THREE.OrbitControls(camera1, renderer1.domElement);
+controls1.enableDamping = true;
+controls1.enableZoom = false;
+
 // Lighting
 scene1.add(new THREE.AmbientLight(0xffffff, 1.2)); 
 const dirLight1 = new THREE.DirectionalLight(0xffffff, 1.0); 
@@ -86,6 +91,11 @@ const renderer2 = new THREE.WebGLRenderer({ canvas: canvas2, antialias: true, al
 renderer2.setSize(container2.clientWidth, container2.clientHeight);
 renderer2.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
+// --- ADDED: This enables mouse rotation for Scene 2 ---
+const controls2 = new THREE.OrbitControls(camera2, renderer2.domElement);
+controls2.enableDamping = true;
+controls2.enableZoom = false;
+
 // Lighting
 scene2.add(new THREE.AmbientLight(0xffffff, 1.2)); 
 const dirLight2 = new THREE.DirectionalLight(0xffffff, 1.2); 
@@ -120,6 +130,10 @@ loader.load('./radio2.glb', function(gltf) {
 // ==========================================
 function animate() {
     requestAnimationFrame(animate);
+
+    // --- ADDED: Update the rotation controls every frame ---
+    if (typeof controls1 !== 'undefined') controls1.update();
+    if (typeof controls2 !== 'undefined') controls2.update();
     
     // Spin Scene 1
     if (radio1Wrapper) radio1Wrapper.rotation.y += 0.003;
